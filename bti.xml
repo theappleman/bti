@@ -33,6 +33,7 @@
           <arg><option>--host HOST_NAME</option></arg>
           <arg><option>--proxy PROXY:PORT</option></arg>
           <arg><option>--logfile LOGFILE</option></arg>
+          <arg><option>--replyto ID</option></arg>
           <arg><option>--page PAGENUMBER</option></arg>
           <arg><option>--bash</option></arg>
           <arg><option>--shrink-urls</option></arg>
@@ -125,6 +126,20 @@
 		Specify a logfile for bti to write status messages to.  LOGFILE
 		is in relation to the user's home directory, not an absolute
 		path to a file.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
+            <term><option>--replyto ID</option></term>
+            <listitem>
+              <para>
+		Status ID of a single post to which you want to create a threaded
+		reply to.
+	      </para>
+	      <para>
+		When specifying an ID, the status message must begin with the
+		@name of the owner of the notice to which you are replying.
+		Otherwise, it is ignored.
               </para>
             </listitem>
           </varlistentry>

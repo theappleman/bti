@@ -78,6 +78,7 @@ struct session {
 	char *logfile;
 	char *user;
 	char *hosturl;
+	char *replyto;
 	int bash;
 	int shrink_urls;
 	int dry_run;
@@ -108,6 +109,7 @@ static void display_help(void)
 	fprintf(stdout, "  --proxy PROXY:PORT\n");
 	fprintf(stdout, "  --host HOST\n");
 	fprintf(stdout, "  --logfile logfile\n");
+	fprintf(stdout, "  --replyto ID\n");
 	fprintf(stdout, "  --shrink-urls\n");
 	fprintf(stdout, "  --page PAGENUMBER\n");
 	fprintf(stdout, "  --bash\n");
@@ -137,6 +139,7 @@ static void session_free(struct session *session)
 {
 	if (!session)
 		return;
+	free(session->replyto);
 	free(session->password);
 	free(session->account);
 	free(session->tweet);
@@ -351,6 +354,12 @@ static int send_request(struct session *session)
 			     CURLFORM_COPYNAME, "source",
 			     CURLFORM_COPYCONTENTS, "bti",
 			     CURLFORM_END);
+
+		if (session->replyto)
+			curl_formadd(&formpost, &lastptr,
+				     CURLFORM_COPYNAME, "in_reply_to_status_id",
+				     CURLFORM_COPYCONTENTS, session->replyto,
+				     CURLFORM_END);
 
 		curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
 		slist = curl_slist_append(slist, "Expect:");
@@ -922,6 +931,7 @@ int main(int argc, char *argv[], char *envp[])
 		{ "dry-run", 0, NULL, 'n' },
 		{ "page", 1, NULL, 'g' },
 		{ "version", 0, NULL, 'v' },
+		{ "replyto", 1, NULL, 'r' },
 		{ }
 	};
 	struct session *session;
@@ -965,7 +975,7 @@ int main(int argc, char *argv[], char *envp[])
 	parse_configfile(session);
 
 	while (1) {
-		option = getopt_long_only(argc, argv, "dp:P:H:a:A:u:hg:snVv",
+		option = getopt_long_only(argc, argv, "dp:P:H:a:A:u:hg:sr:nVv",
 					  options, NULL);
 		if (option == -1)
 			break;
@@ -986,6 +996,10 @@ int main(int argc, char *argv[], char *envp[])
 			page_nr = atoi(optarg);
 			dbg("page = %d\n", page_nr);
 			session->page = page_nr;
+			break;
+		case 'r':
+			session->replyto = strdup(optarg);
+			dbg("in_reply_to_status_id = %s\n", session->replyto);
 			break;
 		case 'p':
 			if (session->password)

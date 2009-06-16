@@ -171,7 +171,7 @@ bti \- send a tweet to twitter\&.com or identi\&.ca (or any custom laconi\&.ca i
 .SH "Synopsis"
 .fam C
 .HP \w'\fBbti\fR\ 'u
-\fBbti\fR [\fB\-\-account\ account\fR] [\fB\-\-password\ password\fR] [\fB\-\-action\ action\fR] [\fB\-\-user\ screenname\fR] [\fB\-\-host\ HOST_NAME\fR] [\fB\-\-proxy\ PROXY:PORT\fR] [\fB\-\-logfile\ LOGFILE\fR] [\fB\-\-page\ PAGENUMBER\fR] [\fB\-\-bash\fR] [\fB\-\-shrink\-urls\fR] [\fB\-\-debug\fR] [\fB\-\-dry\-run\fR]  [\fB\-\-verbose\fR] [\fB\-\-version\fR] [\fB\-\-help\fR]
+\fBbti\fR [\fB\-\-account\ account\fR] [\fB\-\-password\ password\fR] [\fB\-\-action\ action\fR] [\fB\-\-user\ screenname\fR] [\fB\-\-host\ HOST_NAME\fR] [\fB\-\-proxy\ PROXY:PORT\fR] [\fB\-\-logfile\ LOGFILE\fR] [\fB\-\-replyto\ ID\fR] [\fB\-\-page\ PAGENUMBER\fR] [\fB\-\-bash\fR] [\fB\-\-shrink\-urls\fR] [\fB\-\-debug\fR] [\fB\-\-dry\-run\fR] [\fB\-\-verbose\fR] [\fB\-\-version\fR] [\fB\-\-help\fR]
 .fam
 .SH "DESCRIPTION"
 .PP
@@ -219,6 +219,13 @@ If \-\-proxy is not specified but the environment variable \'http_proxy\' is set
 \fB\-\-logfile LOGFILE\fR
 .RS 4
 Specify a logfile for bti to write status messages to\&. LOGFILE is in relation to the user\'s home directory, not an absolute path to a file\&.
+.RE
+.PP
+\fB\-\-replyto ID\fR
+.RS 4
+Status ID of a single post to which you want to create a threaded reply to\&.
+.sp
+When specifying an ID, the status message must begin with the @name of the owner of the notice to which you are replying\&. Otherwise, it is ignored\&.
 .RE
 .PP
 \fB\-\-shrink\-urls\fR
