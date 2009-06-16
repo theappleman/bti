@@ -75,8 +75,9 @@
 		Specify the action which you want to perform.  Valid options
 		are "update" to send a message, "friends" to see your friends
 		timeline, "public" to track public timeline, "replies" to see
-		replies to your messages and "user" to see a specific user's
-		timeline.
+		replies to your messages, "user" to see a specific user's
+		timeline and "single" to view a single message (see also,
+		<option>--replyto</option>).
               </para>
             </listitem>
           </varlistentry>
@@ -133,7 +134,8 @@
             <term><option>--replyto ID</option></term>
             <listitem>
               <para>
-		Status ID of a single post to which you want to create a threaded
+		If <option>--action update</option> (the default), specify the
+		status ID of a single post to which you want to create a threaded
 		reply to.
 	      </para>
 	      <para>
@@ -141,6 +143,10 @@
 		@name of the owner of the notice to which you are replying.
 		Otherwise, it is ignored.
               </para>
+	       <para>
+	        If <option>--action single</option>, specify the status ID of the
+		single post to which you want to view.
+	      </para>
             </listitem>
           </varlistentry>
           <varlistentry>
@@ -336,9 +342,12 @@
              <term><option>replyto</option></term>
              <listitem>
                <para>
-		 The status ID to which all notices will be linked to.
-		 This is ignored unless the message starts with the @name of the
-		 owner of the post with the status ID.
+		 The status ID to which all notices will be linked to (<option>
+		 --action update</option>) or the status ID of the single post
+		 you wish to view (<option>--action single</option>).
+		 This is ignored unless, during <option>--action update</option>,
+		 the message starts with the @name of the owner of the post with
+		 the status ID, or <option>--action single</option>.
                </para>
              </listitem>
            </varlistentry>

@@ -65,7 +65,8 @@ enum action {
 	ACTION_USER    = 2,
 	ACTION_REPLIES = 4,
 	ACTION_PUBLIC  = 8,
-	ACTION_UNKNOWN = 16
+	ACTION_SINGLE  = 16,
+	ACTION_UNKNOWN = 32
 };
 
 struct session {
@@ -104,7 +105,7 @@ static void display_help(void)
 	fprintf(stdout, "  --password password\n");
 	fprintf(stdout, "  --action action\n");
 	fprintf(stdout, "    ('update', 'friends', 'public', 'replies' "
-		"or 'user')\n");
+		", 'single' or 'user')\n");
 	fprintf(stdout, "  --user screenname\n");
 	fprintf(stdout, "  --proxy PROXY:PORT\n");
 	fprintf(stdout, "  --host HOST\n");
@@ -187,6 +188,7 @@ static const char *update_uri  = "/update.xml";
 static const char *public_uri  = "/public_timeline.xml";
 static const char *friends_uri = "/friends_timeline.xml";
 static const char *replies_uri = "/replies.xml";
+static const char *show_uri    = "/show/";
 
 static CURL *curl_init(void)
 {
@@ -272,13 +274,14 @@ static void parse_timeline(char *document)
 		return;
 	}
 
-	if (xmlStrcmp(current->name, (const xmlChar *) "statuses")) {
-		fprintf(stderr, "unexpected document type\n");
-		xmlFreeDoc(doc);
-		return;
-	}
+	/*
+	 * a single notice starts with <status>
+	 * a timeline starts with <statuses> with nested <status>
+	 * don't drop down unless the doc starts with <statuses>
+	 */
+	if (!xmlStrcmp(current->name, (const xmlChar *) "statuses"))
+		current = current->xmlChildrenNode;
 
-	current = current->xmlChildrenNode;
 	while (current != NULL) {
 		if ((!xmlStrcmp(current->name, (const xmlChar *)"status")))
 			parse_statuses(doc, current);
@@ -396,6 +399,18 @@ static int send_request(struct session *session)
 	case ACTION_PUBLIC:
 		sprintf(endpoint, "%s%s?page=%d", session->hosturl, public_uri, session->page);
 		curl_easy_setopt(curl, CURLOPT_URL, endpoint);
+
+		break;
+	case ACTION_SINGLE:
+		/*
+		 * Requires Authentication:
+		 * false, unless the author of the status is protected
+		 */
+		snprintf(user_password, sizeof(user_password), "%s:%s",
+			 session->account, session->password);
+		sprintf(endpoint, "%s%s%s.xml", session->hosturl, show_uri, session->replyto);
+		curl_easy_setopt(curl, CURLOPT_URL, endpoint);
+		curl_easy_setopt(curl, CURLOPT_USERPWD, user_password);
 
 		break;
 	default:
@@ -636,6 +651,9 @@ static void log_session(struct session *session, int retval)
 		fprintf(log_file, "%s: host=%s retrieving public timeline\n",
 			session->time, host);
 		break;
+	case ACTION_SINGLE:
+		fprintf(log_file, "%s: host=%s retrieving id=%s",
+			session->time, host, session->replyto);
 	default:
 		break;
 	}
@@ -1032,6 +1050,8 @@ int main(int argc, char *argv[], char *envp[])
 				session->action = ACTION_REPLIES;
 			else if (strcasecmp(optarg, "public") == 0)
 				session->action = ACTION_PUBLIC;
+			else if (strcasecmp(optarg, "single") == 0)
+				session->action = ACTION_SINGLE;
 			else
 				session->action = ACTION_UNKNOWN;
 			dbg("action = %d\n", session->action);
@@ -1094,7 +1114,7 @@ int main(int argc, char *argv[], char *envp[])
 	if (session->action == ACTION_UNKNOWN) {
 		fprintf(stderr, "Unknown action, valid actions are:\n");
 		fprintf(stderr, "'update', 'friends', 'public', "
-			"'replies' or 'user'.\n");
+			"'replies', 'single' or 'user'.\n");
 		goto exit;
 	}
 
@@ -1107,6 +1127,11 @@ int main(int argc, char *argv[], char *envp[])
 		fprintf(stdout, "Enter twitter password: ");
 		session->password = readline(NULL);
 	}
+	if (session->action == ACTION_SINGLE && !session->replyto) {
+		fprintf(stderr,"No status ID given. Cannot find status.");
+		goto exit;
+	}
+
 
 	if (session->action == ACTION_UPDATE) {
 		if (session->bash)

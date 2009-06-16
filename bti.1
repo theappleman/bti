@@ -190,7 +190,8 @@ Specify the password of your twitter\&.com or identi\&.ca account\&.
 .PP
 \fB\-\-action action\fR
 .RS 4
-Specify the action which you want to perform\&. Valid options are "update" to send a message, "friends" to see your friends timeline, "public" to track public timeline, "replies" to see replies to your messages and "user" to see a specific user\'s timeline\&.
+Specify the action which you want to perform\&. Valid options are "update" to send a message, "friends" to see your friends timeline, "public" to track public timeline, "replies" to see replies to your messages, "user" to see a specific user\'s timeline and "single" to view a single message (see also,
+\fB\-\-replyto\fR)\&.
 .RE
 .PP
 \fB\-\-user screenname\fR
@@ -223,9 +224,14 @@ Specify a logfile for bti to write status messages to\&. LOGFILE is in relation 
 .PP
 \fB\-\-replyto ID\fR
 .RS 4
-Status ID of a single post to which you want to create a threaded reply to\&.
+If
+\fB\-\-action update\fR
+(the default), specify the status ID of a single post to which you want to create a threaded reply to\&.
 .sp
 When specifying an ID, the status message must begin with the @name of the owner of the notice to which you are replying\&. Otherwise, it is ignored\&.
+.sp
+If
+\fB\-\-action single\fR, specify the status ID of the single post to which you want to view\&.
 .RE
 .PP
 \fB\-\-shrink\-urls\fR
@@ -330,7 +336,9 @@ The logfile name for bti to write what happened to\&. This file is relative to t
 .PP
 \fBreplyto\fR
 .RS 4
-The status ID to which all notices will be linked to\&. This is ignored unless the message starts with the @name of the owner of the post with the status ID\&.
+The status ID to which all notices will be linked to (\fB \-\-action update\fR) or the status ID of the single post you wish to view (\fB\-\-action single\fR)\&. This is ignored unless, during
+\fB\-\-action update\fR, the message starts with the @name of the owner of the post with the status ID, or
+\fB\-\-action single\fR\&.
 .RE
 .PP
 \fBshrink\-urls\fR
