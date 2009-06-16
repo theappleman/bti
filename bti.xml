@@ -333,6 +333,16 @@
              </listitem>
            </varlistentry>
            <varlistentry>
+             <term><option>replyto</option></term>
+             <listitem>
+               <para>
+		 The status ID to which all notices will be linked to.
+		 This is ignored unless the message starts with the @name of the
+		 owner of the post with the status ID.
+               </para>
+             </listitem>
+           </varlistentry>
+           <varlistentry>
              <term><option>shrink-urls</option></term>
              <listitem>
                <para>
