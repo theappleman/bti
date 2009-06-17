@@ -49,6 +49,9 @@
 				## arg);				\
 	} while (0)
 
+#ifndef TWEET_MAX
+#define TWEET_MAX 140
+#endif
 
 static int debug;
 static int verbose;
@@ -1102,6 +1105,11 @@ int main(int argc, char *argv[], char *envp[])
 
 		free(tweet);
 		dbg("tweet = %s\n", session->tweet);
+
+		if (strlen(session->tweet) > TWEET_MAX) {
+			fprintf(stderr, "Your tweet is longer than %d characters.\n", TWEET_MAX);
+			goto exit;
+		}
 	}
 
 	if (!session->user)
