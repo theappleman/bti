@@ -226,6 +226,9 @@ Specify a logfile for bti to write status messages to\&. LOGFILE is in relation 
 Scans the tweet text for valid URL patterns and passes each through the supplied bti\-shrink\-urls script\&. The script will pass the URL to a web service that shrinks the URLs, making it more suitable for micro\-blogging\&.
 .sp
 Currently, only http://2tu\&.us/ is used as a URL shrinking service\&.
+.sp
+If specified twice (i\&.e\&.
+\fB\-\-shrink\-urls \-\-shrink\-urls \fR), only shrink URLs when the message is too long\&.
 .RE
 .PP
 \fB\-\-debug\fR

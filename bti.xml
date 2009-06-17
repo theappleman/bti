@@ -140,6 +140,10 @@
               <para>
                 Currently, only http://2tu.us/ is used as a URL shrinking service.
               </para>
+	      <para>
+	        If specified twice (i.e. <option>--shrink-urls --shrink-urls
+		</option>), only shrink URLs when the message is too long.
+	      </para>
             </listitem>
           </varlistentry>
           <varlistentry>

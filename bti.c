@@ -71,6 +71,12 @@ enum action {
 	ACTION_UNKNOWN = 16
 };
 
+enum shrink {
+	SHRINK_OFF    = 0,
+	SHRINK_ALWAYS = 1,
+	SHRINK_ON     = 2
+};
+
 struct session {
 	char *password;
 	char *account;
@@ -432,7 +438,7 @@ static void parse_configfile(struct session *session)
 	char *action = NULL;
 	char *user = NULL;
 	char *file;
-	int shrink_urls = 0;
+	int shrink_urls = SHRINK_OFF;
 
 	/* config file is ~/.bti  */
 	file = alloca(strlen(session->homedir) + 7);
@@ -503,7 +509,9 @@ static void parse_configfile(struct session *session)
 			c += 12;
 			if (!strncasecmp(c, "true", 4) ||
 					!strncasecmp(c, "yes", 3))
-				shrink_urls = 1;
+				shrink_urls = SHRINK_ON;
+			else if (!strncasecmp(c, "always", 6))
+				shrink_urls = SHRINK_ALWAYS;
 		}
 		else if (!strncasecmp(c, "verbose", 7) &&
 				(c[7] == '=')) {
@@ -821,7 +829,7 @@ error_free_small:
 	return big;
 }
 
-static char *shrink_urls(char *text)
+static char *shrink_urls(int depth, char *text)
 {
 	int *ranges;
 	int rcount;
@@ -837,6 +845,9 @@ static char *shrink_urls(char *text)
 	int inlen = strlen(text);
 
 	dbg("before len=%u\n", inlen);
+
+	if (depth | SHRINK_ON && inlen <= TWEET_MAX)
+		return text;
 
 	shrink_pid = popenRWE(shrink_pipe, shrink_args[0], shrink_args);
 	if (shrink_pid < 0)
@@ -1025,7 +1036,8 @@ int main(int argc, char *argv[], char *envp[])
 			dbg("logfile = %s\n", session->logfile);
 			break;
 		case 's':
-			session->shrink_urls = 1;
+			switch (session->shrink_urls)
+			case 0: case 1: session->shrink_urls++;
 			break;
 		case 'H':
 			if (session->hosturl)
@@ -1095,7 +1107,7 @@ int main(int argc, char *argv[], char *envp[])
 		}
 
 		if (session->shrink_urls)
-			tweet = shrink_urls(tweet);
+			tweet = shrink_urls(session->shrink_urls, tweet);
 
 		session->tweet = zalloc(strlen(tweet) + 10);
 		if (session->bash)
