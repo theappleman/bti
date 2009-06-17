@@ -209,6 +209,7 @@ static void parse_statuses(xmlDocPtr doc, xmlNodePtr current)
 	xmlChar *user = NULL;
 	xmlChar *created = NULL;
 	xmlChar *id = NULL;
+	xmlChar *reply_to = NULL;
 	xmlNodePtr userinfo;
 
 	current = current->xmlChildrenNode;
@@ -220,6 +221,8 @@ static void parse_statuses(xmlDocPtr doc, xmlNodePtr current)
 				text = xmlNodeListGetString(doc, current->xmlChildrenNode, 1);
 			if (!xmlStrcmp(current->name, (const xmlChar *)"id"))
 				id = xmlNodeListGetString(doc, current->xmlChildrenNode, 1);
+			if (!xmlStrcmp(current->name, (const xmlChar *)"in_reply_to_status_id"))
+				reply_to = xmlNodeListGetString(doc, current->xmlChildrenNode, 1);
 			if (!xmlStrcmp(current->name, (const xmlChar *)"user")) {
 				userinfo = current->xmlChildrenNode;
 				while (userinfo != NULL) {
@@ -233,9 +236,20 @@ static void parse_statuses(xmlDocPtr doc, xmlNodePtr current)
 			}
 
 			if (user && text && created && id) {
+				char *st = NULL;
+				if (reply_to) {
+					char status[strlen(reply_to) + 1];
+					st = &status[1];
+					status[0] = '@';
+					st = strncpy(st, reply_to, strlen(reply_to));
+					st = strdup(--st);
+				}
+
 				if (verbose)
-					printf("[%s] {%s} (%.16s) %s\n",
-						user, id, created, text);
+					printf("[%s] {%s%s} (%.16s) %s\n",
+						user, id,
+						st ? st : "",
+						created, text);
 				else
 					printf("[%s] %s\n",
 						user, text);
@@ -243,10 +257,14 @@ static void parse_statuses(xmlDocPtr doc, xmlNodePtr current)
 				xmlFree(text);
 				xmlFree(created);
 				xmlFree(id);
+				xmlFree(reply_to);
 				user = NULL;
 				text = NULL;
 				created = NULL;
 				id = NULL;
+				reply_to = NULL;
+				if (st)
+					free(st);
 			}
 		}
 		current = current->next;
