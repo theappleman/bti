@@ -85,6 +85,7 @@ struct session {
 	int shrink_urls;
 	int dry_run;
 	int page;
+	int enforce;
 	enum host host;
 	enum action action;
 };
@@ -113,6 +114,7 @@ static void display_help(void)
 	fprintf(stdout, "  --logfile logfile\n");
 	fprintf(stdout, "  --shrink-urls\n");
 	fprintf(stdout, "  --page PAGENUMBER\n");
+	fprintf(stdout, "  --enforce\n");
 	fprintf(stdout, "  --bash\n");
 	fprintf(stdout, "  --debug\n");
 	fprintf(stdout, "  --verbose\n");
@@ -432,6 +434,7 @@ static void parse_configfile(struct session *session)
 	char *action = NULL;
 	char *user = NULL;
 	char *file;
+	int enforce = 0;
 	int shrink_urls = 0;
 
 	/* config file is ~/.bti  */
@@ -511,7 +514,14 @@ static void parse_configfile(struct session *session)
 			if (!strncasecmp(c, "true", 4) ||
 					!strncasecmp(c, "yes", 3))
 				verbose = 1;
-		}	
+		}
+		else if (!strncasecmp(c, "enforce", 7) &&
+				(c[7] == '=')) {
+			c += 8;
+			if (!strncasecmp(c, "true", 4) ||
+					!strncasecmp(c, "yes", 3))
+				enforce = 1;
+		}
 	} while (!feof(config_file));
 
 	if (password)
@@ -556,6 +566,7 @@ static void parse_configfile(struct session *session)
 	if (user)
 		session->user = user;
 	session->shrink_urls = shrink_urls;
+	session->enforce = enforce;
 
 	/* Free buffer and close file.  */
 	free(line);
@@ -919,6 +930,7 @@ int main(int argc, char *argv[], char *envp[])
 		{ "bash", 0, NULL, 'b' },
 		{ "dry-run", 0, NULL, 'n' },
 		{ "page", 1, NULL, 'g' },
+		{ "enforce", 0, NULL, 'e' },
 		{ "version", 0, NULL, 'v' },
 		{ }
 	};
@@ -963,7 +975,7 @@ int main(int argc, char *argv[], char *envp[])
 	parse_configfile(session);
 
 	while (1) {
-		option = getopt_long_only(argc, argv, "dp:P:H:a:A:u:hg:snVv",
+		option = getopt_long_only(argc, argv, "dp:P:H:a:A:u:hg:snVev",
 					  options, NULL);
 		if (option == -1)
 			break;
@@ -1051,6 +1063,9 @@ int main(int argc, char *argv[], char *envp[])
 		case 'n':
 			session->dry_run = 1;
 			break;
+		case 'e':
+			session->enforce = 1;
+			break;
 		case 'v':
 			display_version();
 			goto exit;
@@ -1106,8 +1121,10 @@ int main(int argc, char *argv[], char *envp[])
 		free(tweet);
 		dbg("tweet = %s\n", session->tweet);
 
-		if (strlen(session->tweet) > TWEET_MAX) {
-			fprintf(stderr, "Your tweet is longer than %d characters.\n", TWEET_MAX);
+		if (strlen(session->tweet) > TWEET_MAX &&
+				!session->enforce) {
+			fprintf(stderr, "Your tweet is longer than %d"
+					" characters.\n", TWEET_MAX);
 			goto exit;
 		}
 	}
