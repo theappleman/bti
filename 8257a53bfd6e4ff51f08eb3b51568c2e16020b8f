@@ -1,0 +1,5 @@
+Actually I have no idea how well strlen will handle multi-byte (e.g. utf-8)
+characters. Twitter considers 1 multi-byte (e.g. 2 or 3 bytes) character as
+a single character.
+
+A way around this would be to use libutf and runelen().
