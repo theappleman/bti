@@ -252,7 +252,14 @@ Performs all steps that would normally be done for a given action, but will not 
 .PP
 \fB\-\-verbose\fR
 .RS 4
-Verbose mode\&. Print status IDs and timestamps\&.
+Verbose mode\&. Print status and reply IDs and timestamps\&.
+.sp
+In verbose mode, the output is: [\fBusername\fR] {\fBstatusID@replyID\fR} (\fBtimestamp\fR)
+\fBmessage\fR
+.sp
+If the post is not a reply,
+\fB@replyID\fR
+will not be visible\&. Outside of verbose mode, the contents in the curly brackets and the rounded brackets, are not printed\&.
 .RE
 .PP
 \fB\-\-bash\fR

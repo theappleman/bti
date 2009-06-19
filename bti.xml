@@ -186,8 +186,19 @@
             <term><option>--verbose</option></term>
             <listitem>
               <para>
-                Verbose mode. Print status IDs and timestamps.
+                Verbose mode. Print status and reply IDs and timestamps.
               </para>
+	      <para>
+		In verbose mode, the output is:
+
+		[<option>username</option>] {<option>statusID@replyID</option>}
+		(<option>timestamp</option>) <option>message</option>
+	      </para>
+	      <para>
+		If the post is not a reply, <option>@replyID</option> will not be
+		visible. Outside of verbose mode, the contents in the curly brackets
+		and the rounded brackets, are not printed.
+	      </para>
             </listitem>
           </varlistentry>
           <varlistentry>
