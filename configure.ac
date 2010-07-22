@@ -18,11 +18,6 @@ AC_CHECK_LIB([nsl], [main])
 
 AC_CHECK_LIB([pcre], [main])
 
-AC_CHECK_LIB(oauth, main, [], [
-	echo "Error, you need liboauth to build properly."
-	exit -1
-	])
-
 # CURL
 LIBCURL_CHECK_CONFIG([yes], [], [have_libcurl="yes"], [have_libcurl="no"])
 if test "${have_libcurl}" != yes; then
@@ -31,6 +26,11 @@ else
 	CPPFLAGS="$CPPFLAGS $LIBCURL_CPPFLAGS"
 	LIBS="${LIBS} ${LIBCURL}"
 fi
+
+AC_CHECK_LIB(oauth, main, [], [
+	echo "Error, you need liboauth to build properly."
+	exit -1
+	])
 
 # libxml2
 AM_PATH_XML2([], [have_libxml="yes"], [have_libxml="no"])
