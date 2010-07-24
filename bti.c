@@ -67,7 +67,10 @@ enum action {
 	ACTION_REPLIES = 4,
 	ACTION_PUBLIC  = 8,
 	ACTION_GROUP   = 16,
-	ACTION_UNKNOWN = 32
+	ACTION_HOME    = 32,
+	ACTION_RETWEETS= 64,
+	ACTION_RETWEET = 128,
+	ACTION_UNKNOWN = 256
 };
 
 struct session {
@@ -86,6 +89,7 @@ struct session {
 	char *hostname;
 	char *configfile;
 	char *replyto;
+	char *retweet;
 	int bash;
 	int interactive;
 	int shrink_urls;
@@ -244,6 +248,7 @@ static void session_free(struct session *session)
 	free(session->access_token_key);
 	free(session->access_token_secret);
 	free(session->replyto);
+	free(session->retweet);
 	free(session->tweet);
 	free(session->proxy);
 	free(session->time);
@@ -272,6 +277,9 @@ static const char *user_uri    = "/user_timeline/";
 static const char *update_uri  = "/update.xml";
 static const char *public_uri  = "/public_timeline.xml";
 static const char *friends_uri = "/friends_timeline.xml";
+static const char *home_uri = "/home_timeline.xml";
+static const char *retweeted_to_me_uri = "/retweeted_to_me.xml";
+static const char *retweet_uri = "/retweet/";
 static const char *mentions_uri = "/mentions.xml";
 //static const char *group_uri = "/../laconica/groups/timeline/";
 
@@ -470,6 +478,7 @@ static int request_access_token(struct session *session)
 static int send_request(struct session *session)
 {
 	char endpoint[500];
+	char url[500];
 	char *req_url = NULL;
 	char *reply = NULL;
 	char *postarg = NULL;
@@ -498,6 +507,17 @@ static int send_request(struct session *session)
 	case ACTION_GROUP:
 	case ACTION_FRIENDS:
 		sprintf(endpoint, "%s%s", session->hosturl, friends_uri);
+		break;
+	case ACTION_HOME:
+		sprintf(endpoint, "%s%s", session->hosturl, home_uri);
+		break;
+	case ACTION_RETWEETS:
+		sprintf(endpoint, "%s%s", session->hosturl, retweeted_to_me_uri);
+		break;
+	case ACTION_RETWEET:
+		sprintf(url, "%s%s.xml", retweet_uri, session->retweet);
+		sprintf(endpoint, "%s%s", session->hosturl, url);
+		is_post = 1;
 		break;
 	default:
 		break;
@@ -672,6 +692,10 @@ static void parse_configfile(struct session *session)
 			session->action = ACTION_UPDATE;
 		else if (strcasecmp(action, "friends") == 0)
 			session->action = ACTION_FRIENDS;
+		else if (strcasecmp(action, "home") == 0)
+			session->action = ACTION_HOME;
+		else if (strcasecmp(action, "retweets") == 0)
+			session->action = ACTION_RETWEETS;
 		else if (strcasecmp(action, "user") == 0)
 			session->action = ACTION_USER;
 		else if (strcasecmp(action, "replies") == 0)
@@ -720,6 +744,10 @@ static void log_session(struct session *session, int retval)
 			fprintf(log_file, "%s: host=%s tweet=%s\n",
 				session->time, session->hostname,
 				session->tweet);
+		break;
+	case ACTION_HOME:
+		fprintf(log_file, "%s: host=%s retrieving home timeline\n",
+			session->time, session->hostname);
 		break;
 	case ACTION_FRIENDS:
 		fprintf(log_file, "%s: host=%s retrieving friends timeline\n",
@@ -1033,8 +1061,8 @@ int main(int argc, char *argv[], char *envp[])
 		{ "debug", 0, NULL, 'd' },
 		{ "verbose", 0, NULL, 'V' },
 		{ "host", 1, NULL, 'H' },
-		{ "proxy", 1, NULL, 'P' },
-		{ "action", 1, NULL, 'A' },
+		{ "proxy", 1, NULL, 'p' },
+		{ "action", 1, NULL, 'a' },
 		{ "user", 1, NULL, 'u' },
 		{ "group", 1, NULL, 'G' },
 		{ "logfile", 1, NULL, 'L' },
@@ -1046,6 +1074,7 @@ int main(int argc, char *argv[], char *envp[])
 		{ "version", 0, NULL, 'v' },
 		{ "config", 1, NULL, 'c' },
 		{ "replyto", 1, NULL, 'r' },
+		{ "retweet", 1, NULL, 'R' },
 		{ }
 	};
 	struct session *session;
@@ -1091,7 +1120,7 @@ int main(int argc, char *argv[], char *envp[])
 	parse_configfile(session);
 
 	while (1) {
-		option = getopt_long_only(argc, argv, "dp:P:H:a:A:u:c:hg:G:sr:nVv",
+		option = getopt_long_only(argc, argv, "dp:H:a:R:u:c:hg:G:sr:nVv",
 					  options, NULL);
 		if (option == -1)
 			break;
@@ -1111,17 +1140,21 @@ int main(int argc, char *argv[], char *envp[])
 			session->replyto = strdup(optarg);
 			dbg("in_reply_to_status_id = %s\n", session->replyto);
 			break;
-		case 'P':
+		case 'p':
 			if (session->proxy)
 				free(session->proxy);
 			session->proxy = strdup(optarg);
 			dbg("proxy = %s\n", session->proxy);
 			break;
-		case 'A':
+		case 'a':
 			if (strcasecmp(optarg, "update") == 0)
 				session->action = ACTION_UPDATE;
 			else if (strcasecmp(optarg, "friends") == 0)
 				session->action = ACTION_FRIENDS;
+			else if (strcasecmp(optarg, "home") == 0)
+				session->action = ACTION_HOME;
+			else if (strcasecmp(optarg, "retweets") == 0)
+				session->action = ACTION_RETWEETS;
 			else if (strcasecmp(optarg, "user") == 0)
 				session->action = ACTION_USER;
 			else if (strcasecmp(optarg, "replies") == 0)
@@ -1132,6 +1165,17 @@ int main(int argc, char *argv[], char *envp[])
 				session->action = ACTION_GROUP;
 			else
 				session->action = ACTION_UNKNOWN;
+			dbg("action = %d\n", session->action);
+			break;
+		case 'R':
+			session->retweet = strdup(optarg);
+			dbg("retweet = %s\n", session->retweet);
+
+			/*
+			 * A likely source of bugs
+			 * if a user also sets the -a flag
+			 */
+			session->action = ACTION_RETWEET;
 			dbg("action = %d\n", session->action);
 			break;
 		case 'u':
@@ -1215,8 +1259,8 @@ int main(int argc, char *argv[], char *envp[])
 		display_version();
 
 	if (!session->consumer_key || !session->consumer_secret) {
-		fprintf(stderr, "Both consumer key, and consumer secret are required.\n");
-		goto exit;
+		session->consumer_key = strdup("cZy8DdioswAfu3LJYg6E2w");
+		session->consumer_secret = strdup("fnIGGU0T12mMWKjmThUdSeKN32NLWfmnwapwubVQ");
 	}
 	
 	if (!session->access_token_key || !session->access_token_secret) {

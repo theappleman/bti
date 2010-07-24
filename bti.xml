@@ -295,7 +295,7 @@
              </listitem>
            </varlistentry>
 	   <varlistentry>
-            <term><option>--action action</option></term>
+            <term><option>action</option></term>
             <listitem>
               <para>
 		Specify the action which you want to perform.  Valid options
@@ -307,7 +307,7 @@
             </listitem>
            </varlistentry>
 	   <varlistentry>
-            <term><option>--user screenname</option></term>
+            <term><option>user</option></term>
             <listitem>
               <para>
 		Specify the user you want to see his/her messages while the
