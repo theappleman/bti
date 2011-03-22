@@ -467,7 +467,8 @@ static int request_access_token(struct session *session)
 				OA_HMAC, NULL, session->consumer_key,
 				session->consumer_secret, NULL, NULL);
 	else if (session->oauth_uri) {
-		sprintf(at_uri, "%s/request_token?oauth_callback=oob", session->oauth_uri);
+		sprintf(at_uri, "%s/request_token?oauth_callback=oob",
+						session->oauth_uri);
 		request_url = oauth_sign_url2(
 				at_uri,	NULL,
 				OA_HMAC, NULL, session->consumer_key,
