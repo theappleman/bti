@@ -216,6 +216,7 @@ static void session_free(struct session *session)
 	free(session->hosturl);
 	free(session->hostname);
 	free(session->configfile);
+	free(session->oauth_uri);
 	free(session);
 }
 
@@ -465,6 +466,12 @@ static int request_access_token(struct session *session)
 				identica_request_token_uri, NULL,
 				OA_HMAC, NULL, session->consumer_key,
 				session->consumer_secret, NULL, NULL);
+	else
+		request_url = oauth_sign_url2(
+				session->oauth_uri,
+				"/request_token?oauth_callback=oob",
+				NULL, OA_HMAC, NULL, session->consumer_key,
+				session->consumer_secret, NULL, NULL);
 	reply = oauth_http_get(request_url, post_params);
 
 	if (request_url)
@@ -495,6 +502,16 @@ static int request_access_token(struct session *session)
 		verifier = session->readline(NULL);
 		sprintf(at_uri, "%s?oauth_verifier=%s",
 			identica_access_token_uri, verifier);
+	} else {
+		fprintf(stdout, "%s%s%s\nPIN: ",
+			session->oauth_uri,
+			"/authorize?oauth_token=",
+			at_key);
+		verifier = session->readline(NULL);
+		sprintf(at_uri, "%s%s?oauth_verifier=%s",
+			session->oauth_uri,
+			"/access_token",
+			verifier);
 	}
 	request_url = oauth_sign_url2(at_uri, NULL, OA_HMAC, NULL,
 				      session->consumer_key,

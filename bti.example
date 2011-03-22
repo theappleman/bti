@@ -8,6 +8,8 @@ password=icanhascheezburger
 host=identica
 # Example of a custom laconica installation
 #host=http://army.twit.tv/api/statuses
+# To use OAuth with a custom laconica/statusnet installation
+#oauth_uri=http://example.com/api/oauth
 logfile=.bti.log
 #action=update
 #user=gregkh

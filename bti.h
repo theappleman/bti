@@ -56,6 +56,7 @@ struct session {
 	char *configfile;
 	char *replyto;
 	char *retweet;
+	char *oauth_uri;
 	int bash;
 	int background;
 	int interactive;

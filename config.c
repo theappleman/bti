@@ -268,6 +268,11 @@ static int shrink_urls_callback(struct session *session, char *value)
 	return session_bool(&session->shrink_urls, value);
 }
 
+static int oauth_uri_callback(struct session *session, char *value)
+{
+	return session_string(&session->oauth_uri, value);
+}
+
 /*
  * List of all of the config file options.
  *
@@ -292,6 +297,7 @@ static struct config_function config_table[] = {
 	{ "action", action_callback },
 	{ "verbose", verbose_callback },
 	{ "shrink-urls", shrink_urls_callback },
+	{ "oauth_uri", oauth_uri_callback },
 	{ NULL, NULL }
 };
 
